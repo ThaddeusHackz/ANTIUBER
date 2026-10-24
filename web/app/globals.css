@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --shell: 1280px;
+  --header-h: 64px;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: #000;
+  background: #fff;
+  font-feature-settings: "cv11", "ss01";
+  font-variation-settings: "opsz" 32;
+}
+
+::selection {
+  background: #000;
+  color: #fff;
+}
+
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-shell px-5 sm:px-8;
+  }
+
+  .h-display {
+    @apply text-[40px] leading-[1.08] tracking-[-0.03em] sm:text-[52px] md:text-[64px] font-semibold;
+  }
+
+  .h-section {
+    @apply text-[28px] leading-[1.15] tracking-[-0.025em] sm:text-[34px] md:text-[40px] font-semibold;
+  }
+
+  .h-card {
+    @apply text-[18px] leading-snug tracking-[-0.01em] font-semibold;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 text-[15px] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed;
+    height: 48px;
+  }
+
+  .btn-primary {
+    @apply btn bg-black text-white hover:bg-[#333] active:scale-[.99];
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-black border border-black/15 hover:bg-[#f6f6f6] active:scale-[.99];
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-black hover:bg-black/[.06];
+  }
+
+  .btn-sm {
+    height: 38px;
+    @apply px-4 text-[14px] rounded-lg;
+  }
+
+  .link-underline {
+    @apply underline decoration-[1.5px] underline-offset-[3px] hover:decoration-2;
+  }
+
+  .field {
+    @apply w-full rounded-lg bg-[#F3F3F3] px-4 py-3 text-[15px] text-black placeholder:text-[#8A8A8A] outline-none border border-transparent transition-colors focus:bg-white focus:border-black;
+  }
+
+  .divider {
+    @apply h-px w-full bg-hair;
+  }
+
+  .tile {
+    @apply relative flex flex-col overflow-hidden rounded-lg bg-surface transition-transform duration-200;
+  }
+
+  .tag {
+    @apply inline-flex items-center rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[.08em];
+  }
+}
+
+/* hide scrollbars for horizontal rails */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Uber-like focus ring on dark surfaces */
+.on-dark ::selection {
+  background: #fff;
+  color: #000;
+}
+
+input[type="range"] {
+  accent-color: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
