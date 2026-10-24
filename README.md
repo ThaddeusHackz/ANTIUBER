@@ -3,11 +3,20 @@
 A high-fidelity recreation of [uber.com/gh/en](https://www.uber.com/gh/en/) **and** the
 authenticated rider experience, built after reverse-engineering the public page.
 
-- **Live marketing site** — `/` and the locale route `/gh/en`
+- **Live:** https://antiuber-gh.vercel.app — deployed on Vercel (project `antiuber-gh`)
+- **Marketing site** — `/` and the locale route `/gh/en`
 - **Rider app** — `/ride`, `/activity`, `/payments`, `/account`, `/reserve`, `/help`
 - **Next.js 14 (App Router) + TypeScript + Tailwind CSS**
 - **Supabase** for auth, Postgres and RLS (`ride_*` tables)
 - **REA MCP server** registered as `rea` for static analysis tooling
+
+## Deploy
+
+```bash
+# production tracks main; the project root directory is web/
+# env: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+#      SUPABASE_SERVICE_ROLE_KEY (encrypted), NEXT_PUBLIC_SITE_URL
+```
 
 ## Run it
 
