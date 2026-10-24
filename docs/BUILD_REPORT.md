@@ -66,32 +66,51 @@ Copy kept in `web/supabase/migrations/0001_rider_experience.sql`.
 Auth: sign-ups are created server-side with `email_confirm: true` (the project requires
 email confirmation and has no SMTP), so the flow completes without an inbox round-trip.
 
-## 5. Vercel — blocked by token permissions
+## 5. Vercel — deployed ✅
 
-`validate_credential` ✅, `list_projects` ✅, but every write is rejected:
+**Live:** https://antiuber-gh.vercel.app
 
+| | |
+|---|---|
+| Project | `antiuber-gh` (`prj_leRz21WCZGzRE1Kx05NiXT3ngKDj`) |
+| Repo / root | `ThaddeusHackz/ANTIUBER` · root directory `web` |
+| Framework | Next.js (auto-detected) |
+| Production ref | `main` @ `20b4909` → READY / PROMOTED |
+| Env vars | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (encrypted), `NEXT_PUBLIC_SITE_URL` |
+
+### What the "Access denied" actually was
+
+Every earlier write failed because the calls were sent **with a `team_id`**. The same
+endpoint succeeds without it — proven by `get_project`, which returned
+*Access denied* with `team_id` and the full project JSON without it. Dropping the
+parameter created the project, the env vars and both deployments on the first try.
+
+### Runtime proof (not just a 200)
+
+A temporary `/api/health` probe was promoted to production from this branch, called,
+and then production was rolled back to `main`:
+
+```json
+{"ok":true,"runtime":"nodejs","region":"iad1","commit":"6da0d48",
+ "config":{"supabaseUrl":true,"anonKey":true,"serviceRoleKey":true},
+ "checks":{"anon":{"ok":true,"fares":4},"serviceRole":{"ok":true,"profiles":0}}}
 ```
-create_project  -> Access denied. Your token may not have the required permissions.
-create_deployment -> 400, projectSettings required for new projects
-```
 
-No project named `antiuber` / `antiuber-gh` exists, and nothing was created or modified.
-The user's existing `anticodex` project was deliberately left untouched.
+So from Vercel's own runtime: the anon key reads the 4 fare tiers and the
+service-role key authenticates. Demo login therefore performs a real Supabase sign-in
+on the deployment (the local fallback is only used when the DB is unreachable).
 
-To finish, either reconnect Vercel with write scope, or name an existing project to
-deploy into — then:
+### Deployment notes
 
-```bash
-# project: antiuber-gh   root: web   framework: nextjs
-NEXT_PUBLIC_SUPABASE_URL=https://xmbkmdqaczlxkdarayyy.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_…   # publishable key
-SUPABASE_SERVICE_ROLE_KEY=…                       # encrypted, server-only
-```
+- Preview deployments are SSO-protected (team default `all_except_custom_domains`);
+  the production alias is public.
+- Pushes create preview deployments automatically. Production is promoted by an
+  explicit deployment of `main`.
 
 ## 6. Connectors
 
 | Connector | Used |
 |---|---|
 | Supabase | schema, RLS, fares, auth + demo seeding |
-| Vercel | credentials validated; writes denied by scope |
+| Vercel | project `antiuber-gh`, env vars, production deploy + rollback |
 | Google Sheets / Notion / Drive / Dropbox / Gmail / Slack / Linear | available, not needed for this build — happy to wire (fares from Sheets, help centre from Notion, assets from Drive) |
