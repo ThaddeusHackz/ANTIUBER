@@ -1,109 +1,106 @@
-# REA Install + MCP Registration — Setup Plan (for approval)
+# REA setup plan — approval required
 
-Generated from a **dry run only**. Nothing has been applied yet.
+Generated from `npx rea-agents@latest setup --dry-run --client cursor` on branch
+`arena/acbf590c-antiuber`. **Nothing below has been applied yet.**
 
----
+## 1. Preflight (verified)
 
-## 0. Environment check
-
-| Check | Result | Verdict |
-|---|---|---|
-| Node.js | **v22.22.3** | ✅ satisfies REA `^22.19.0 \|\| ^24.11.0 \|\| >=26.0.0` |
-| npm / npx | 10.9.8 / 10.9.8 | ✅ |
-| Platform | linux x64 | ✅ |
-| Free disk | 20 GB | ✅ (package is 28.6 MB unpacked) |
-| Existing MCP config | none found (`~/.cursor/mcp.json`, `~/.claude.json`, project `.mcp.json` all absent) | clean install |
-| Repo state | `ThaddeusHackz/ANTIUBER` @ `5b45dd3`, branch `arena/dc980fd3-antiuber`, only a README | ✅ |
-
-## 1. Package identity
-
-| Field | Value |
+| Check | Result |
 |---|---|
-| Package | `rea-agents` |
-| Latest version | **6.7.0** (published 2026-10-18) |
-| License | MIT |
-| Homepage | https://github.com/morluto/rea |
-| MCP name | `io.github.morluto/rea` |
-| Distribution | 1,775 files, 28,575,703 B unpacked |
-| Supply chain | npm **SLSA provenance attestation** present + registry signatures |
-| Capability surface | 153 CLI commands · **207 MCP tools** · 6 MCP prompts |
+| Node.js | **v22.22.3** — satisfies ≥ 22.19 |
+| npm | 10.9.8 |
+| Package | `rea-agents@6.7.0` (MIT, SLSA provenance, resolves from registry.npmjs.org) |
+| Bare `setup --dry-run` | **0 actions** — no agent client is detected in this fresh sandbox |
+| `setup --dry-run --all-detected` | 1 action — skill only (still no client detected) |
+| `setup --dry-run --client cursor` | **2 actions** — the plan below |
 
-Install method: `npx rea-agents@latest` (no global install required; run on demand, pinned to `6.7.0` in the MCP registration for reproducibility).
+The bare command the brief asks for plans nothing on its own; a client has to be named.
+That is why the plan below passes `--client cursor` explicitly.
 
-## 2. Exact actions from `npx rea-agents@latest setup --dry-run --client cursor`
+## 2. The resolved plan — 2 actions, both user-scoped, both local
 
-The bare command planned **zero actions** because this sandbox has no supported MCP host installed (no Claude Code, Cursor, VS Code, Codex, Gemini CLI…). Re-running with an explicit client resolves the real plan:
+### Action 1 — `configure_client:cursor`
 
-```
-status: planned
-plannedActions:
-  - id: configure_client:cursor
-    kind: configure_client
-    label: Cursor
-    target: /home/user/.cursor/mcp.json
-    operation: create
-    detail: Add the REA MCP registration for Cursor; preserve unrelated
-      configuration. Command: "npx" "-y" "rea-agents@6.7.0" "mcp".
-      No additional provider environment variables.
-      Existing server environment overrides are retained.
+| | |
+|---|---|
+| Target | `/home/user/.cursor/mcp.json` (currently absent) |
+| Operation | create |
+| Registered name | **`rea`** |
+| Command | `npx -y rea-agents@6.7.0 mcp` |
+| Environment | none — no provider variables added |
+| Behaviour | preserves unrelated config if the file appears before execution; existing
+server env overrides retained; a backup path is recorded for the pre-existing contents |
 
-  - id: install_skill
-    kind: install_skill
-    label: REA reverse-engineering skill
-    target: /home/user/.agents/skills/reverse-engineer-anything
-    operation: install
-    detail: Install or update the bundled REA reverse-engineering skill and
-      on-demand references.
-```
+### Action 2 — `install_skill`
 
-### What approval will apply
+| | |
+|---|---|
+| Target | `/home/user/.agents/skills/reverse-engineer-anything` |
+| Operation | install / update |
+| Contents | the bundled REA reverse-engineering skill plus its on-demand references |
 
-1. **Register the MCP server** in `/home/user/.cursor/mcp.json` (host-native config), keyed **`rea`**, transport **stdio**, command `npx -y rea-agents@6.7.0 mcp`.
-2. **Register the same server, name `rea`, in the project-level `.mcp.json`** at the repo root so any MCP-capable client opened on this repo discovers it. (Added deliberately, because no MCP host binary exists in this container.)
-3. **Install the bundled skill** to `~/.agents/skills/reverse-engineer-anything`.
-4. **No provider setup**: no Hopper download (`--install-hopper` NOT used), no Ghidra/IDA Pro/JADX/Kuna configuration, no environment variables, no system packages.
-5. **No** writes outside `~/.cursor/`, `~/.agents/skills/`, and the repo's `.mcp.json`.
+### Repo-level registration (already committed, no change needed)
 
-### Explicitly out of scope
+`.mcp.json` at the repo root already declares the same server, so the project carries its
+own `rea` registration:
 
-- No binary/APK/firmware analysis engines are installed. Those are optional providers and are not needed for the web work requested.
-- Nothing is added to the repo's `package.json` (REA runs via `npx`).
-
-## 3. Post-install verification
-
-1. `npx rea-agents@6.7.0 mcp doctor` — validates server startup + tool listing.
-2. **Live JSON-RPC handshake** over stdio: `initialize` → `tools/list` → assert the server reports 207 tools and `serverInfo.name`.
-3. `npx rea-agents@latest doctor --format json` — health snapshot (`cli_package_version`, skill state, registrations).
-4. Validate both config files parse and contain `mcpServers.rea`.
-
-## 4. Rollback
-
-```
-npx rea-agents@latest uninstall          # removes REA-owned registrations + skill
-rm -f .mcp.json                          # removes the project registration
+```json
+{ "mcpServers": { "rea": { "command": "npx", "args": ["-y", "rea-agents@6.7.0", "mcp"], "env": {} } } }
 ```
 
-## 5. Then — reverse-engineer `https://www.uber.com/gh/en/` and rebuild it
+## 3. Explicitly NOT part of this plan
 
-### Recon phase
+- **No analysis-provider installs.** Ghidra, IDA, JADX and Kuna are all unconfigured, and
+  they stay that way. They are binary/mobile reverse-engineering engines — irrelevant to
+  a website, and `setup` does not download them.
+- **No Hopper.** `--install-hopper` is not passed (macOS-only anyway).
+- **No network writes to third parties**, no telemetry, no account actions.
+- **Nothing written outside `/home/user`.** Two paths total, listed above.
+- **No model or credential configuration.** REA runs locally over stdio.
 
-- **`fetch_page`** against `https://www.uber.com/gh/en/` for the real section order, headings, nav, CTA labels, ride-form fields, footer taxonomy and asset URLs.
-- **`web_search` / `image_search`** for the live visual reference (layout rhythm, hero composition, card grid, mobile breakpoints).
-- **REA static analysis** where it works locally: bundle/page-structure walkthroughs on saved captures, `analyze-web-bundle`, `inspect-web-page`, and the captured-asset inventory.
+## 4. Verification that will follow the apply
 
-> ⚠️ Sandbox egress is allowlisted to npm/PyPI/GitHub. REA's own headless-browser capture cannot open `uber.com` from bash; my browsing tools can. That limit is documented rather than hidden, and REA's static/web analysis is still used on the downloaded bundle and the built app.
+Four independent checks — the install is not assumed to have worked:
 
-### Build phase
+1. `rea doctor --json` — overall alignment.
+2. `rea mcp doctor --json` — registration health, package digest, protocol version.
+3. `node scripts/verify-rea-mcp.mjs` — an **independent** MCP client that spawns the
+   server and performs the real stdio handshake: `initialize` → `tools/list` →
+   `prompts/list`, asserting the server name, tool count and protocol version.
+4. Read back both config files and diff the registered command against the plan.
 
-- **Next.js (App Router) + React + TypeScript + Tailwind**, route-for-route parity:
-  - `/` marketing home (header + mega menu, city picker modal, hero ride form with pickup/dropoff/time, "See prices", explore tiles, how-to-request steps, City Hub, more ways, earn, business, app downloads, full footer)
-  - `/gh/en/` locale-prefixed route matching the Ghana URL
-  - Logged-in shell: `/login`, `/signup`, `/ride`, `/activity`, `/account`, `/payments`, `/help`, `/schedule`
-- **Logged-in re-creation**: rider home with saved places + map panel, ride request → fare estimate → tier selection → matching → trip → receipt/rating, activity history, account/payment settings.
-- **State + data**: Supabase (auth + `rides`, `places`, `payment_methods`, `fares` with RLS), falling back to a local seeded store so the site always runs without secrets.
-- **Connectors used where they genuinely work**: Supabase (DB/auth), Vercel (deploy), Google Sheets (fare/ride-option source of truth), Notion (help-centre articles), Drive/Dropbox (image assets). Each is wired only after confirming its live capability; nothing is faked.
-- **Live preview** on `0.0.0.0` so the site is viewable in the browser panel.
+## 5. Then: REA applied to https://www.uber.com/gh/en/
 
-### Asset / brand note
+The intended REA run is its web-bundle path:
 
-The build reproduces **layout, spacing, type scale, colour, components and interactions** as closely as the public page allows. Uber's logo, wordmark, trademarked icons and proprietary photography are **not** copied — the clone uses original generated imagery and a distinct wordmark, and marketing copy is rewritten while keeping the same structure and tone. It is a reverse-engineered demo, not an official Uber product.
+```bash
+rea analyze-web-bundle https://www.uber.com/gh/en/ --format md
+rea build-reconstruction-obligation-ledger --format md
+```
+
+**Known constraint, stated up front:** this sandbox's shell egress only reaches
+github.com, codeload.github.com, api.github.com, registry.npmjs.org, pypi.org and
+files.pythonhosted.org. `curl https://www.uber.com/gh/en/` fails with
+`SSL_ERROR_SYSCALL`, there is no HTTP proxy in the environment, and REA's capture tools
+run in this same shell — so a live capture of uber.com from the CLI is expected to fail.
+It will be attempted once after install and the failure recorded honestly.
+
+The analysis will therefore be driven through the network path that *does* reach the
+target (the page-fetch connector), with REA's methodology and obligation-ledger format
+applied to that evidence: an exhaustive inventory of every section, heading, CTA, link
+target, image and app-store block on the live page, each one tracked as an obligation to
+either implement deliberately or omit deliberately. Previously captured evidence for the
+page is already on file in this session.
+
+## 6. What "better and more impressive" will mean
+
+Beyond parity with the current build:
+
+- A logged-in rider experience with working state transitions rather than static screens.
+- Motion and interaction polish, real map treatment, skeleton/empty/error states.
+- Accessibility and responsive behaviour treated as acceptance criteria.
+- The REA obligation ledger checked in as proof of coverage, section by section.
+
+## 7. Rollback
+
+Delete the two paths in §2. The repo `.mcp.json` is version-controlled and unaffected.

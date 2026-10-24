@@ -209,7 +209,14 @@ function ActivityInner() {
               </p>
             ) : null}
 
-            <button onClick={() => setOpen(null)} className="btn btn-primary mt-6 w-full">
+            <Link
+              href={`/activity/${open.id}`}
+              className="btn btn-secondary mt-3 w-full"
+            >
+              View full receipt
+            </Link>
+
+            <button onClick={() => setOpen(null)} className="btn btn-primary mt-2 w-full">
               Done
             </button>
           </div>

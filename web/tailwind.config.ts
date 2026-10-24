@@ -68,6 +68,14 @@ const config: Config = {
         spinSlow: {
           to: { transform: "rotate(360deg)" },
         },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.97) translateY(-6px)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
+        "price-in": {
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "fade-up": "fade-up .45s cubic-bezier(.2,.7,.3,1) both",
@@ -76,6 +84,8 @@ const config: Config = {
         pulseRing: "pulseRing 2.4s ease-out infinite",
         dash: "dash 1.2s linear infinite",
         spinSlow: "spinSlow 18s linear infinite",
+        "scale-in": "scale-in .18s cubic-bezier(.2,.7,.3,1) both",
+        "price-in": "price-in .22s cubic-bezier(.2,.7,.3,1) both",
       },
     },
   },
